@@ -13,6 +13,12 @@ defmodule Formplug do
   # Stripe Purchase form
   #####################################
 
+  def route("POST", ["form-payment", "webhook"], conn) do
+    IO.inspect conn
+    conn |> Plug.Conn.send_resp( 200, "Accepted")
+  end
+
+
   def route("POST", ["form-payment", "purchase"], conn) do
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # part (i) - get form data

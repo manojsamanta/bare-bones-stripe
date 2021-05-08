@@ -1,5 +1,6 @@
 # Bare Bones Stripe Application
 
+## General Use
 
 To use it, 
 
@@ -22,7 +23,7 @@ To use it,
           data-billing-address="true"
           data-zip-code="true"
           data-locale="auto"></script>
-</form></td>
+</form>
 ~~~~~~~~~~
 
 4. Direct the output of the form correctly to  the elixir program.
@@ -39,6 +40,93 @@ matches line 16 in "lib/formplug.ex".
 ~~~~~~~~~~
 
 4. Also configure nginx to ensure that all responses to the form goes to elixir program.
+
+~~~~~~~~~
+location /form-payment
+{
+           proxy_pass http://127.0.0.1:4000/form-payment;
+           proxy_redirect off;
+           proxy_set_header Host $host;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Ssl on;
+}
+~~~~~~~~~
+
+## Webhooks
+
+The following function addresses webhooks -
+
+~~~~~~~~~
+  def route("POST", ["form-payment", "webhook"], conn) do
+    IO.inspect conn
+    conn |> Plug.Conn.send_resp( 200, "Accepted")
+  end
+~~~~~~~~~
+
+To test it, 
+
+1. Run your elixir program ('mix run --no-halt'),
+2. Go to Stripe online website and choose test mode,
+3. Click on developers --> webhooks, add http://mycooldomain.com/form-payment/webhook and send a test webhook.
+
+You will see the message being sent from Stripe on your elixir console. Here is a typical one (with some entries modified).
+
+~~~~~~~~~
+%Plug.Conn{
+  adapter: {Plug.Adapters.Cowboy.Conn, :...},
+  assigns: %{},
+  before_send: [],
+  body_params: %Plug.Conn.Unfetched{aspect: :body_params},
+  cookies: %Plug.Conn.Unfetched{aspect: :cookies},
+  halted: false,
+  host: "mycooldomain.com",
+  method: "POST",
+  owner: #PID<0.324.0>,
+  params: %Plug.Conn.Unfetched{aspect: :params},
+  path_info: ["form-payment", "webhook"],
+  path_params: %{},
+  port: 80,
+  private: %{},
+  query_params: %Plug.Conn.Unfetched{aspect: :query_params},
+  query_string: "",
+  remote_ip: {10, 0, 0, 99},
+  req_cookies: %Plug.Conn.Unfetched{aspect: :cookies},
+  req_headers: [
+    {"host", "mycooldomain.com"},
+    {"x-forwarded-for", "54.187.174.169"},
+    {"x-forwarded-ssl", "on"},
+    {"connection", "close"},
+    {"content-length", "754"},
+    {"user-agent", "Stripe/1.0 (+https://stripe.com/docs/webhooks)"},
+    {"accept", "*/*; q=0.5, application/xml"},
+    {"cache-control", "no-cache"},
+    {"content-type", "application/json; charset=utf-8"},
+    {"stripe-signature",
+     "t=1620481715,v1=a4e683e2fed4c810bbfed756c0a8e82a2911e0634963f23e077f946504f30a89,v0=f4117f1a462ddf5295b1b1a7a0c983f128b612da321bed2ffffdce24d00642f5"},
+    {"accept-encoding", "gzip"}
+  ],
+  request_path: "/form-payment/webhook",
+  resp_body: nil,
+  resp_cookies: %{},
+  resp_headers: [{"cache-control", "max-age=0, private, must-revalidate"}],
+  scheme: :http,
+  script_name: [],
+  secret_key_base: nil,
+  state: :unset,
+  status: nil
+}
+~~~~~~~~~
+
+### Security of webhooks
+
+The webhook comes with a signature that looks like -
+
+~~~~~~~~~
+{"stripe-signature",
+     "t=1620481715,v1=a4e683e2fed4c810bbfed756c0a8e82a2911e0634963f23e077f946504f30a89,v0=f4117f1a462ddf5295b1b1a7a0c983f128b612da321bed2ffffdce24d00642f5"},
+~~~~~~~~~
+
+[This section](https://stripe.com/docs/webhooks/signatures) in the Stripe manual explains how to parse and verify this signature.
 
 
 
