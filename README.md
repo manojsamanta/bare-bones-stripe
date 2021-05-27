@@ -126,7 +126,14 @@ The webhook comes with a signature that looks like -
      "t=1620481715,v1=a4e683e2fed4c810bbfed756c0a8e82a2911e0634963f23e077f946504f30a89,v0=f4117f1a462ddf5295b1b1a7a0c983f128b612da321bed2ffffdce24d00642f5"},
 ~~~~~~~~~
 
-[This section](https://stripe.com/docs/webhooks/signatures) in the Stripe manual explains how to parse and verify this signature.
+[This section](https://stripe.com/docs/webhooks/signatures) in the Stripe manual explains how to parse and verify this signature. [This tutorial](https://connerfritz.com/blog/stripe-webhooks-in-phoenix-with-elixir-pattern-matching) explains the steps in more detail.
 
+We implemented this in our code and you can try it out by sending test webhook from the Stripe website. 
+~~~~~~~~~
+    signing_secret = System.get_env("STRIPE_SIGNING_SECRET")
+    {:ok, body, _} = Plug.Conn.read_body(conn)
+    [stripe_signature] = Plug.Conn.get_req_header(conn, "stripe-signature")
+    IO.inspect Stripe.Webhook.construct_event(body, stripe_signature, signing_secret)
+~~~~~~~~~
 
-
+Please note that the "STRIPE_SIGNING_SECRET" is a different key ("signing secret") available from the webhooks page, and it is not the same as the secret key that is used for payment.

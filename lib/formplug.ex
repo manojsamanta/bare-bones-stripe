@@ -15,6 +15,12 @@ defmodule Formplug do
 
   def route("POST", ["form-payment", "webhook"], conn) do
     IO.inspect conn
+
+    signing_secret = System.get_env("STRIPE_SIGNING_SECRET")
+    {:ok, body, _} = Plug.Conn.read_body(conn)
+    [stripe_signature] = Plug.Conn.get_req_header(conn, "stripe-signature")
+    IO.inspect Stripe.Webhook.construct_event(body, stripe_signature, signing_secret)
+    
     conn |> Plug.Conn.send_resp( 200, "Accepted")
   end
 
