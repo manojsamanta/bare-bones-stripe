@@ -1,6 +1,6 @@
 # Bare Bones Stripe Application
 
-## General Use
+## Stripe Charge
 
 To use it, 
 
@@ -52,7 +52,11 @@ location /form-payment
 }
 ~~~~~~~~~
 
-## Webhooks
+### Passing Custom Data
+
+Add them as hidden variables in the above form. When the form is submitted, they will be returned as parameters.
+
+## Webhook
 
 The following function addresses webhooks -
 
@@ -137,3 +141,52 @@ We implemented this in our code and you can try it out by sending test webhook f
 ~~~~~~~~~
 
 Please note that the "STRIPE_SIGNING_SECRET" is a different key ("signing secret") available from the webhooks page, and it is not the same as the secret key that is used for payment.
+
+
+## Stripe Subscription
+
+https://stripe.com/docs/billing/subscriptions/examples
+
+~~~~~~~~~~
+<form method=POST action="/form-payment/subscribe">
+<input type="hidden" name="amount" value="65000">
+<script src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+          data-key="pk_live_fjff6jDr3j$v#F##F$"
+          data-amount="65000"
+          data-email=""
+          data-allow-remember-me="false"
+          data-billing-address="true"
+          data-zip-code="true"
+          data-locale="auto"></script>
+</form>
+~~~~~~~~~~
+
+
+### Webhook Interactions
+
+|Result   | Action                  | Event ID                     | Time                  | 
+|---------|-------------------------|------------------------------|-----------------------|
+| Succeeded | payment_method.attached | evt_1Ivv7KGlbTd7l4KBZXlJJdXK | May 27,  7:08 PM | 
+| Succeeded | customer.card.created | evt_1Ivv7KGlbTd7l4KBWcbioJaL | May 27,  7:08 PM | 
+| Succeeded | customer.created | evt_1Ivv7KGlbTd7l4KB5az89L77 | May 27,  7:08 PM | 
+| Succeeded | customer.updated | evt_1Ivv7LGlbTd7l4KB5zKQYSsw | May 27,  7:08 PM | 
+| Succeeded | invoice.created | evt_1Ivv7LGlbTd7l4KB70NxDrI6 | May 27,  7:08 PM | 
+| Succeeded | invoice.finalized | evt_1Ivv7MGlbTd7l4KBf96SoIGr | May 27,  7:08 PM | 
+| Succeeded | invoice.paid | evt_1Ivv7MGlbTd7l4KBM45tHPPL | May 27,  7:08 PM | 
+| Succeeded | invoice.payment_succeeded | evt_1Ivv7MGlbTd7l4KBI3tc2Ma7 | May 27,  7:08 PM | 
+| Succeeded | customer.subscription.created | evt_1Ivv7MGlbTd7l4KBr9fHrpmw | May | 27, 7:08 PM | 
+| Succeeded | setup_intent.created | evt_1Ivv7MGlbTd7l4KBRdXg6Ihs | May 27,  7:08 PM | 
+| Succeeded | setup_intent.succeeded | evt_1Ivv7MGlbTd7l4KBgmCkhjek | May 27, 7:08 PM | 
+
+
+## Payment Intent
+
+https://stripe.com/docs/payments/accept-a-payment?ui=elements
+
+https://github.com/code-corps/stripity_stripe
+
+Stripe 
+
+https://github.com/code-corps/stripity_stripe
+
+

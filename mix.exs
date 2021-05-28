@@ -25,7 +25,8 @@ defmodule Unsub.MixProject do
       {:cowboy, "~> 1.0.0"},
       {:plug, "~> 1.0"},
       {:plug_cowboy, "~> 1.0"},
-      {:stripity_stripe, "~> 2.0.0"},
+      # {:stripity_stripe, "~> 2.0.0"},
+      {:stripity_stripe, git: "https://github.com/code-corps/stripity_stripe", ref: "8c091d4278d29a917bacef7bb2f0606317fcc025"},
       {:bamboo_smtp, "~> 1.4.0"}
     ]
   end

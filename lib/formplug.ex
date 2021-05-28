@@ -10,20 +10,8 @@ defmodule Formplug do
   end
 
   #####################################
-  # Stripe Purchase form
+  # Stripe Purchase form for Charge
   #####################################
-
-  def route("POST", ["form-payment", "webhook"], conn) do
-    IO.inspect conn
-
-    signing_secret = System.get_env("STRIPE_SIGNING_SECRET")
-    {:ok, body, _} = Plug.Conn.read_body(conn)
-    [stripe_signature] = Plug.Conn.get_req_header(conn, "stripe-signature")
-    IO.inspect Stripe.Webhook.construct_event(body, stripe_signature, signing_secret)
-    
-    conn |> Plug.Conn.send_resp( 200, "Accepted")
-  end
-
 
   def route("POST", ["form-payment", "purchase"], conn) do
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -35,6 +23,10 @@ defmodule Formplug do
     email = body["stripeEmail"]
     token = body["stripeToken"]
     amount=body["amount"]
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # part (ii) - save and respond
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     case Stripe.Customer.create(%{source: token, email: email}) do
       
@@ -55,6 +47,70 @@ defmodule Formplug do
     		|> Plug.Conn.send_resp( 200, "Sorry, your payment is denied. Please try a different card or contact us for other payment options.")
     end
 
+  end
+
+  #####################################
+  # Stripe form for subscription
+  # 
+  # Metered plan, where you save the
+  # credit card number
+  #####################################
+
+  def route("POST", ["form-payment", "subscribe"], conn) do
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # part (i) - get form data
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    {:ok, body, _} = Plug.Conn.read_body(conn)
+    body = body |> Plug.Conn.Query.decode()
+    email = body["stripeEmail"]
+    token = body["stripeToken"]
+    amount=body["amount"]
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # part (ii) - save and respond
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    stripe_prod_id = "prod_JZ0opU76v7LINq"
+    stripe_price_id = "price_1IvsmqGlbTd7l4KBfhPqNtYb"
+
+    case Stripe.Customer.create(%{source: token, email: email}) do
+      
+      {:ok, %Stripe.Customer{id: stripe_cus_id}} ->
+          case Stripe.Subscription.create(%{customer: stripe_cus_id, items: [ %{price: stripe_price_id} ] } ) do
+
+    	    {:ok, %Stripe.Subscription{items: %Stripe.List{data: [%Stripe.SubscriptionItem{id: stripe_sub_id}  ] }}} ->
+                IO.inspect Stripe.SubscriptionItem.Usage.create(stripe_sub_id, %{quantity: 100, timestamp: 1622179968 })
+    		conn
+    		|> Plug.Conn.send_resp( 200, "Thank You. Your subscription is approved. We will send you a confirmation email shortly.")
+    	     {:error, _} ->
+    		conn
+    		|> Plug.Conn.send_resp( 200, "Sorry, your payment is denied. Please try a different card or contact us for other payment options.")
+           end
+
+      {:error, _} ->
+    		conn
+    		|> Plug.Conn.send_resp( 200, "Sorry, your payment is denied. Please try a different card or contact us for other payment options.")
+    end
+
+  end
+
+  #####################################
+  # Stripe form for webhook
+  #####################################
+
+  def route("POST", ["form-payment", "webhook"], conn) do
+    IO.inspect "inside webhook"
+
+    # IO.inspect conn
+
+    signing_secret = System.get_env("STRIPE_SIGNING_SECRET")
+    {:ok, body, _} = Plug.Conn.read_body(conn)
+    [stripe_signature] = Plug.Conn.get_req_header(conn, "stripe-signature")
+    # IO.inspect Stripe.Webhook.construct_event(body, stripe_signature, signing_secret)
+    
+    conn |> Plug.Conn.send_resp( 200, "Accepted")
   end
 
   ############################
