@@ -164,6 +164,9 @@ https://stripe.com/docs/billing/subscriptions/examples
 
 ### Webhook Interactions
 
+The following webhooks were activated, when we created a customer and subscribed him to a metered plan.
+
+
 |Result   | Action                  | Event ID                     | Time                  | 
 |---------|-------------------------|------------------------------|-----------------------|
 | Succeeded | payment_method.attached | evt_1Ivv7KGlbTd7l4KBZXlJJdXK | May 27,  7:08 PM | 
@@ -185,8 +188,11 @@ https://stripe.com/docs/payments/accept-a-payment?ui=elements
 
 https://github.com/code-corps/stripity_stripe
 
-Stripe 
 
-https://github.com/code-corps/stripity_stripe
+## Useful Examples
 
+https://stripe.com/docs/billing/subscriptions/examples
 
+https://www.daily.co/blog/implementing-api-billing-with-stripe/
+
+https://connerfritz.com/blog/stripe-webhooks-in-phoenix-with-elixir-pattern-matching
